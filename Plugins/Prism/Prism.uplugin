@@ -1,0 +1,39 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "Prism",
+	"Description": "Prism Lens Flare editor plugin for Unreal Engine.",
+	"Category": "Visuals",
+	"CreatedBy": "tBoons",
+	"CreatedByURL": "https://github.com/t-Boons",
+	"DocsURL": "https://t-boons.github.io/PrismDocs/",
+	"MarketplaceURL": "com.epicgames.launcher://ue/Fab/product/b361d847-2672-4adf-9f7c-da1591279c70",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"EngineVersion": "5.6.0",
+	"Modules": [
+		{
+			"Name": "Prism",
+			"Type": "Runtime",
+			"LoadingPhase": "PostConfigInit",
+			"ShaderDirectories": [
+				"Shaders"
+			],
+			"PlatformAllowList": [
+				"Win64"
+			]
+		},
+		{
+			"Name": "PrismEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"PlatformAllowList": [
+				"Win64"
+			]
+		}
+	]
+}

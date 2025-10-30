@@ -1,0 +1,163 @@
+#include "/Engine/Public/Platform.ush"
+
+struct FBokehData
+{
+    uint TextureIndex;
+    float AxisOffsetMultiplier;
+    float2 Scale;
+    float4 Color;
+    float Rotation;
+    float RingEffectContribution;
+    float RingEffectStrength;
+    float MiddleFadeContribution;
+    float MiddleFadeSize;
+    int AlwaysLookAtLight;
+};
+
+struct VS_OUTPUT
+{
+    float4 Position : SV_POSITION;
+    float2 UV : TEXCOORD0;
+    float2 ScreenPos : SCREENPOS;
+    uint InstanceID : INSTANCE_ID;
+    nointerpolation float Opacity : OPACITY;
+};
+
+float DiscMask(float2 uv, float radius, float softness)
+{
+    float dist = length(uv);
+    float clampedDist = saturate(dist - radius);
+    float vignette = smoothstep(0.0, softness, clampedDist);
+    return saturate(vignette);
+}
+
+// Function craeted by ChatGPT.
+float RectMask(float2 uv, float2 size, float softness)
+{
+    float2 d = abs(uv) - size * 0.5;
+    float outside = max(d.x, d.y);
+    float mask = 1.0 - smoothstep(0.0, softness, outside);
+    return saturate(mask);
+}
+
+
+StructuredBuffer<FBokehData> BokehDataBuffer : register(t0);
+uint NumBokehData;
+float AspectRatio;
+float2 LightScreenPosition;
+float4 LightColor;
+
+VS_OUTPUT MainVS(uint VertexID : SV_VertexID, uint InstanceID : SV_InstanceID)
+{
+    VS_OUTPUT Out;
+    
+    float2 Vertices[6] =
+    {
+        float2(-0.5, -0.5),
+        float2(0.5, -0.5),
+        float2(-0.5, 0.5),
+
+        float2(-0.5, 0.5),
+        float2(0.5, 0.5),
+        float2(0.5, -0.5)
+    };
+    
+    float2 UVs[6] =
+    {
+        float2(0, 0),
+        float2(1, 0),
+        float2(0, 1),
+
+        float2(0, 1),
+        float2(1, 1),
+        float2(1, 0),
+    };
+    
+    FBokehData Bokeh = BokehDataBuffer[InstanceID];
+    
+    // Remap screen position to fit the vertices.
+    float2 NDCScreenSpace = LightScreenPosition;
+    NDCScreenSpace.y = 0.5 - NDCScreenSpace.y;
+    NDCScreenSpace.x -= 0.5f;
+    NDCScreenSpace *= 2;
+
+    float2 LocalPosition = float2(Vertices[VertexID].x * Bokeh.Scale.x,
+                              Vertices[VertexID].y * Bokeh.Scale.y);
+    
+
+    float Rotation = Bokeh.Rotation;
+    
+    if(Bokeh.AlwaysLookAtLight > 0)
+    {
+        float2 LightDirection = normalize(NDCScreenSpace);
+        Rotation = atan2(LightDirection.y, LightDirection.x * AspectRatio) + Bokeh.Rotation;
+    }
+    
+    float2x2 RotationMatrix = float2x2(
+    cos(Rotation), -sin(Rotation),
+    sin(Rotation), cos(Rotation)
+    );
+    
+    float2 RotatedPosition = mul(RotationMatrix, LocalPosition);
+
+    RotatedPosition.x /= AspectRatio;
+
+    float2 PositionOffset = NDCScreenSpace * Bokeh.AxisOffsetMultiplier;
+    Out.Position = float4(RotatedPosition + PositionOffset, 0, 1);
+
+    Out.UV = UVs[VertexID];
+    
+    Out.InstanceID = InstanceID;
+    Out.ScreenPos = Out.Position.xy;
+    float MiddleOpacity = lerp(1.0, DiscMask(NDCScreenSpace, Bokeh.MiddleFadeSize, 1.0), Bokeh.MiddleFadeContribution);
+    Out.Opacity = MiddleOpacity * RectMask(NDCScreenSpace, 0.5, 2.0);
+    return Out;
+}
+
+Texture2D<float4> BokehTextures0;
+Texture2D<float4> BokehTextures1;
+Texture2D<float4> BokehTextures2;
+Texture2D<float4> BokehTextures3;
+Texture2D<float4> BokehTextures4;
+Texture2D<float4> BokehTextures5;
+Texture2D<float4> BokehTextures6;
+Texture2D<float4> BokehTextures7;
+Texture2D<float4> BokehTextures8;
+Texture2D<float4> BokehTextures9;
+Texture2D<float4> BokehTextures10;
+Texture2D<float4> BokehTextures11;  
+Texture2D<float4> BokehTextures12;
+Texture2D<float4> BokehTextures13;
+Texture2D<float4> BokehTextures14;
+Texture2D<float4> BokehTextures15;
+SamplerState InputTextureSampler;
+
+float4 GetBokehTexturePixel(uint TextureIndex, float2 UV)
+{
+    if (TextureIndex == 0)  return BokehTextures0.Sample(InputTextureSampler, UV);
+    if (TextureIndex == 1)  return BokehTextures1.Sample(InputTextureSampler, UV);
+    if (TextureIndex == 2)  return BokehTextures2.Sample(InputTextureSampler, UV);
+    if (TextureIndex == 3)  return BokehTextures3.Sample(InputTextureSampler, UV);
+    if (TextureIndex == 4)  return BokehTextures4.Sample(InputTextureSampler, UV);
+    if (TextureIndex == 5)  return BokehTextures5.Sample(InputTextureSampler, UV);
+    if (TextureIndex == 6)  return BokehTextures6.Sample(InputTextureSampler, UV);
+    if (TextureIndex == 7)  return BokehTextures7.Sample(InputTextureSampler, UV);
+    if (TextureIndex == 8)  return BokehTextures8.Sample(InputTextureSampler, UV);
+    if (TextureIndex == 9)  return BokehTextures9.Sample(InputTextureSampler, UV);
+    if (TextureIndex == 10) return BokehTextures10.Sample(InputTextureSampler, UV);
+    if (TextureIndex == 11) return BokehTextures11.Sample(InputTextureSampler, UV);
+    if (TextureIndex == 12) return BokehTextures12.Sample(InputTextureSampler, UV);
+    if (TextureIndex == 13) return BokehTextures13.Sample(InputTextureSampler, UV);
+    if (TextureIndex == 14) return BokehTextures14.Sample(InputTextureSampler, UV);
+    if (TextureIndex == 15) return BokehTextures15.Sample(InputTextureSampler, UV);
+    return float4(1,1,1,1);
+}
+
+float4 MainPS(VS_OUTPUT V2P) : SV_Target
+{
+    float4 Color = GetBokehTexturePixel(BokehDataBuffer[V2P.InstanceID].TextureIndex, V2P.UV);
+    float Alpha = 1.0 - DiscMask(V2P.ScreenPos, BokehDataBuffer[V2P.InstanceID].RingEffectStrength, 0.5f);
+    Color.a *= lerp(1.0, Alpha, BokehDataBuffer[V2P.InstanceID].RingEffectContribution);
+    Color.a *= V2P.Opacity;
+    return Color * BokehDataBuffer[V2P.InstanceID].Color * float4(LightColor.rgb, 1.0);
+}
